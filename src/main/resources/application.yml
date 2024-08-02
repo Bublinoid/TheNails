@@ -1,0 +1,6 @@
+telegram:
+  bot:
+    token: "7399299200:AAHtZJQp0mh-j3YJ-u6yRfn1X5QiUyMdgu8"
+    username: "TheNaIIsBot"
+logging:
+  config: "classpath:logback.xml"
