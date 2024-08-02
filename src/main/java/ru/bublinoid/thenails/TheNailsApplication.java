@@ -9,5 +9,4 @@ public class TheNailsApplication {
     public static void main(String[] args) {
         SpringApplication.run(TheNailsApplication.class, args);
     }
-
 }
