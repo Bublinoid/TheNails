@@ -1,4 +1,4 @@
-package ru.bublinoid.thenails.telegram;
+package ru.bublinoid.thenails.keyboard;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;

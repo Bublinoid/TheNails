@@ -10,6 +10,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.bublinoid.thenails.config.BotConfig;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import ru.bublinoid.thenails.content.AboutUsInfoProvider;
+import ru.bublinoid.thenails.content.ServicesInfoProvider;
+import ru.bublinoid.thenails.content.ContactsInfoProvider;
+import ru.bublinoid.thenails.keyboard.InlineKeyboardMarkupBuilder;
 
 @Component
 @AllArgsConstructor
@@ -19,6 +23,8 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final BotConfig botConfig;
     private final InlineKeyboardMarkupBuilder inlineKeyboardMarkupBuilder;
     private final ServicesInfoProvider servicesInfoProvider;
+    private final AboutUsInfoProvider aboutUsInfoProvider;
+    private final ContactsInfoProvider contactsInfoProvider;
 
     @Override
     public String getBotUsername() {
@@ -51,21 +57,25 @@ public class TelegramBot extends TelegramLongPollingBot {
         } else if (update.hasCallbackQuery()) {
             String callbackData = update.getCallbackQuery().getData();
             long chatId = update.getCallbackQuery().getMessage().getChatId();
+            String firstName = update.getCallbackQuery().getMessage().getChat().getFirstName();
+
+            logger.info("Received callback query from chatId: {}, name: {}, data: {}", chatId, firstName, callbackData);
 
             switch (callbackData) {
                 case "services":
-                    sendServicesInfo(chatId);
+                    sendServicesInfo(chatId, firstName);
                     break;
                 case "book":
                     // Add booking info method here
                     break;
                 case "about_us":
-                    // Add about us info method here
+                    sendAboutUsInfo(chatId, firstName);
                     break;
                 case "contacts":
-                    // Add contacts info method here
+                    sendContactsInfo(chatId, firstName);
                     break;
                 default:
+                    logger.warn("Unknown callback data: {}", callbackData);
                     break;
             }
         }
@@ -74,12 +84,29 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void startCommandReceived(Long chatId, String name) {
         String answer = "Здравствуйте, " + name + "!\n" +
                 "Добро пожаловать в наш бот записи на маникюр! Здесь вы сможете легко и быстро записаться на маникюр.";
+        logger.info("Sending start command response to chatId: {}, name: {}", chatId, name);
         sendMessageWithKeyboard(chatId, answer, inlineKeyboardMarkupBuilder.createMainMenuKeyboard());
     }
 
-    private void sendServicesInfo(Long chatId) {
+    private void sendServicesInfo(Long chatId, String name) {
         String servicesInfo = servicesInfoProvider.getServicesInfo();
+        logger.info("Sending services info to chatId: {}, name: {}", chatId, name);
         sendMarkdownMessage(chatId, servicesInfo);
+        sendMainMenu(chatId, name);
+    }
+
+    private void sendAboutUsInfo(Long chatId, String name) {
+        String aboutUsInfo = aboutUsInfoProvider.getAboutUsInfo();
+        logger.info("Sending about us info to chatId: {}, name: {}", chatId, name);
+        sendMarkdownMessage(chatId, aboutUsInfo);
+        sendMainMenu(chatId, name);
+    }
+
+    private void sendContactsInfo(Long chatId, String name) {
+        String contactsInfo = contactsInfoProvider.getContactsInfo();
+        logger.info("Sending contacts info to chatId: {}, name: {}", chatId, name);
+        sendMarkdownMessage(chatId, contactsInfo);
+        sendMainMenu(chatId, name);
     }
 
     private void sendMarkdownMessage(Long chatId, String textToSend) {
@@ -105,5 +132,10 @@ public class TelegramBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             logger.error("Error occurred while sending message: ", e);
         }
+    }
+
+    private void sendMainMenu(Long chatId, String name) {
+        logger.info("Sending main menu to chatId: {}, name: {}", chatId, name);
+        sendMessageWithKeyboard(chatId, "Что бы вы хотели сделать дальше?", inlineKeyboardMarkupBuilder.createMainMenuKeyboard());
     }
 }

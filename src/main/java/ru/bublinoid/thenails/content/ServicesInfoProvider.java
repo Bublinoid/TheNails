@@ -1,4 +1,4 @@
-package ru.bublinoid.thenails.telegram;
+package ru.bublinoid.thenails.content;
 
 import org.springframework.stereotype.Component;
 
