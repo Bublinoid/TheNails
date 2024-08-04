@@ -2,22 +2,17 @@ telegram:
   bot:
     token: "7399299200:AAHtZJQp0mh-j3YJ-u6yRfn1X5QiUyMdgu8"
     username: "TheNaIIsBot"
-
-yclients:
-  api:
-    key: "b5717039092430d3a748354af88b2c48"
-    company_id: "1091446"
-
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/the_nails
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
 
