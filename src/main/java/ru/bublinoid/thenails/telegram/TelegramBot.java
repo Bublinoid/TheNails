@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.bublinoid.thenails.config.BotConfig;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 @Component
 @AllArgsConstructor
@@ -16,6 +17,8 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private static final Logger logger = LoggerFactory.getLogger(TelegramBot.class);
     private final BotConfig botConfig;
+    private final InlineKeyboardMarkupBuilder inlineKeyboardMarkupBuilder;
+    private final ServicesInfoProvider servicesInfoProvider;
 
     @Override
     public String getBotUsername() {
@@ -40,22 +43,63 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "/start":
                     startCommandReceived(chatId, firstName);
                     break;
+                // Добавьте другие команды здесь, если необходимо
                 default:
-                    sendMessage(chatId, "Вы отправили: " + messageText);
+                    // Здесь можно добавить обработку других сообщений, если это потребуется в будущем
+                    break;
+            }
+        } else if (update.hasCallbackQuery()) {
+            String callbackData = update.getCallbackQuery().getData();
+            long chatId = update.getCallbackQuery().getMessage().getChatId();
+
+            switch (callbackData) {
+                case "services":
+                    sendServicesInfo(chatId);
+                    break;
+                case "book":
+                    // Add booking info method here
+                    break;
+                case "about_us":
+                    // Add about us info method here
+                    break;
+                case "contacts":
+                    // Add contacts info method here
+                    break;
+                default:
+                    break;
             }
         }
     }
 
     private void startCommandReceived(Long chatId, String name) {
-        String answer = "Привет, " + name + ", приятно познакомиться!" + "\n" +
-                "Введите любой текст, и я повторю его обратно.";
-        sendMessage(chatId, answer);
+        String answer = "Здравствуйте, " + name + "!\n" +
+                "Добро пожаловать в наш бот записи на маникюр! Здесь вы сможете легко и быстро записаться на маникюр.";
+        sendMessageWithKeyboard(chatId, answer, inlineKeyboardMarkupBuilder.createMainMenuKeyboard());
     }
 
-    private void sendMessage(Long chatId, String textToSend) {
+    private void sendServicesInfo(Long chatId) {
+        String servicesInfo = servicesInfoProvider.getServicesInfo();
+        sendMarkdownMessage(chatId, servicesInfo);
+    }
+
+    private void sendMarkdownMessage(Long chatId, String textToSend) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(chatId));
         sendMessage.setText(textToSend);
+        sendMessage.setParseMode("Markdown"); // Устанавливаем режим парсинга Markdown
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            logger.error("Error occurred while sending message: ", e);
+        }
+    }
+
+    private void sendMessageWithKeyboard(Long chatId, String textToSend, InlineKeyboardMarkup keyboardMarkup) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(chatId));
+        sendMessage.setText(textToSend);
+        sendMessage.setReplyMarkup(keyboardMarkup);
+        sendMessage.setParseMode("Markdown"); // Устанавливаем режим парсинга Markdown для сообщений с клавиатурой
         try {
             execute(sendMessage);
         } catch (TelegramApiException e) {
