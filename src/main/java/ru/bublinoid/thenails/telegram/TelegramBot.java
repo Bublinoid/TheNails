@@ -15,6 +15,7 @@ import ru.bublinoid.thenails.content.BookingInfoProvider;
 import ru.bublinoid.thenails.content.ServicesInfoProvider;
 import ru.bublinoid.thenails.content.ContactsInfoProvider;
 import ru.bublinoid.thenails.keyboard.InlineKeyboardMarkupBuilder;
+import ru.bublinoid.thenails.service.BookingService;
 
 @Component
 @AllArgsConstructor
@@ -26,7 +27,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final ServicesInfoProvider servicesInfoProvider;
     private final AboutUsInfoProvider aboutUsInfoProvider;
     private final ContactsInfoProvider contactsInfoProvider;
-    private final BookingInfoProvider bookingInfoProvider;
+    private final BookingService bookingService;
 
     @Override
     public String getBotUsername() {
@@ -124,9 +125,11 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void sendBookingInfo(Long chatId, String name) {
-        String bookingInfo = bookingInfoProvider.getRequestEmailMessage();
+        String bookingInfo = bookingService.getRequestEmailMessage();
         logger.info("Sending booking info to chatId: {}, name: {}", chatId, name);
         sendMarkdownMessage(chatId, bookingInfo);
+
+        bookingService.startEmailProcess(chatId);
         sendMainMenu(chatId, name);
     }
 
