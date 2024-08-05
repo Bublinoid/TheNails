@@ -54,7 +54,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                     break;
                 // Добавьте другие команды здесь, если необходимо
                 default:
-                    // Здесь можно добавить обработку других сообщений, если это потребуется в будущем
+                    // Обработка ввода e-mail
+                    bookingService.handleEmailInput(chatId, messageText);
+                    sendMainMenu(chatId, firstName);
                     break;
             }
         } else if (update.hasCallbackQuery()) {
@@ -129,8 +131,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         logger.info("Sending booking info to chatId: {}, name: {}", chatId, name);
         sendMarkdownMessage(chatId, bookingInfo);
 
-        bookingService.startEmailProcess(chatId);
-        sendMainMenu(chatId, name);
+        bookingService.handleEmailInput(chatId, ""); // Это заглушка, так как email будет обрабатываться в onUpdateReceived
     }
 
     private void sendMessageWithKeyboard(Long chatId, String textToSend, InlineKeyboardMarkup keyboardMarkup) {
