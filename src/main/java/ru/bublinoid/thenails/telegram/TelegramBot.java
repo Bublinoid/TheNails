@@ -11,9 +11,11 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.bublinoid.thenails.config.BotConfig;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import ru.bublinoid.thenails.content.AboutUsInfoProvider;
+import ru.bublinoid.thenails.content.BookingInfoProvider;
 import ru.bublinoid.thenails.content.ServicesInfoProvider;
 import ru.bublinoid.thenails.content.ContactsInfoProvider;
 import ru.bublinoid.thenails.keyboard.InlineKeyboardMarkupBuilder;
+import ru.bublinoid.thenails.service.BookingService;
 
 @Component
 @AllArgsConstructor
@@ -25,6 +27,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final ServicesInfoProvider servicesInfoProvider;
     private final AboutUsInfoProvider aboutUsInfoProvider;
     private final ContactsInfoProvider contactsInfoProvider;
+    private final BookingService bookingService;
 
     @Override
     public String getBotUsername() {
@@ -51,7 +54,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                     break;
                 // Добавьте другие команды здесь, если необходимо
                 default:
-                    // Здесь можно добавить обработку других сообщений, если это потребуется в будущем
+                    // Обработка ввода e-mail
+                    bookingService.handleEmailInput(chatId, messageText);
+                    sendMainMenu(chatId, firstName);
                     break;
             }
         } else if (update.hasCallbackQuery()) {
@@ -66,7 +71,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     sendServicesInfo(chatId, firstName);
                     break;
                 case "book":
-                    // Add booking info method here
+                    sendBookingInfo(chatId, firstName);
                     break;
                 case "about_us":
                     sendAboutUsInfo(chatId, firstName);
@@ -119,6 +124,14 @@ public class TelegramBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             logger.error("Error occurred while sending message: ", e);
         }
+    }
+
+    private void sendBookingInfo(Long chatId, String name) {
+        String bookingInfo = bookingService.getRequestEmailMessage();
+        logger.info("Sending booking info to chatId: {}, name: {}", chatId, name);
+        sendMarkdownMessage(chatId, bookingInfo);
+
+        bookingService.handleEmailInput(chatId, ""); // Это заглушка, так как email будет обрабатываться в onUpdateReceived
     }
 
     private void sendMessageWithKeyboard(Long chatId, String textToSend, InlineKeyboardMarkup keyboardMarkup) {
