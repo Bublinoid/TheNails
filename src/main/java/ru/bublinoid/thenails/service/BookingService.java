@@ -52,7 +52,7 @@ public class BookingService {
             telegramBot.sendEmailSavedMessage(chatId);
         } else {
             logger.warn("Received invalid email: {} from chatId: {}", email, chatId);
-            telegramBot.sendInvalidEmailMessage(chatId, bookingInfoProvider.getInvalidEmailMessage());
+            telegramBot.sendInvalidEmailMessage(chatId);
         }
     }
 }
