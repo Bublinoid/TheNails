@@ -26,6 +26,9 @@ public class Email {
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "confirmation_code")
+    private String confirmationCode;
+
+    @Column(name = "insert_dt", nullable = false)
+    private LocalDateTime insertDt = LocalDateTime.now();
 }
