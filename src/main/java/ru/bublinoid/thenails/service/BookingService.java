@@ -5,6 +5,7 @@ import ru.bublinoid.thenails.content.BookingInfoProvider;
 import ru.bublinoid.thenails.model.Email;
 import ru.bublinoid.thenails.repository.EmailRepository;
 import ru.bublinoid.thenails.telegram.TelegramBot;
+import ru.bublinoid.thenails.utils.CodeGenerator;
 import ru.bublinoid.thenails.utils.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,14 +40,16 @@ public class BookingService {
             userEmails.put(chatId, email);
             logger.info("Received valid email: {} from chatId: {}", email, chatId);
 
-            // Создание и сохранение email в базу данных
+            // Генерация и сохранение кода подтверждения
+            String confirmationCode = String.format("%04d", CodeGenerator.generateFourDigitCode());
             Email emailEntity = new Email();
             emailEntity.setChatId(chatId);
             emailEntity.setEmail(email);
+            emailEntity.setConfirmationCode(confirmationCode);
             emailRepository.save(emailEntity);
 
-            logger.info("Email saved to database: {} for chatId: {}", email, chatId);
-            telegramBot.sendEmailConfirmedMessage(chatId);
+            logger.info("Email and confirmation code saved to database: {} for chatId: {}", email, chatId);
+            telegramBot.sendEmailSavedMessage(chatId);
         } else {
             logger.warn("Received invalid email: {} from chatId: {}", email, chatId);
             telegramBot.sendInvalidEmailMessage(chatId, bookingInfoProvider.getInvalidEmailMessage());

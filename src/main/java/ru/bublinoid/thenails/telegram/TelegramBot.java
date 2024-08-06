@@ -178,6 +178,12 @@ public class TelegramBot extends TelegramLongPollingBot {
         sendMarkdownMessage(chatId, message);
     }
 
+    public void sendEmailSavedMessage(long chatId) {
+        String message = "Ваш email успешно сохранен! Ожидайте дальнейших инструкций.";
+        logger.info("Sending email saved message to chatId: {}", chatId);
+        sendMarkdownMessage(chatId, message);
+    }
+
     public void sendEmailConfirmedMessage(long chatId) {
         String message = "Ваш e-mail успешно подтвержден! Мы готовы принять вашу запись.";
         logger.info("Sending email confirmed message to chatId: {}", chatId);
