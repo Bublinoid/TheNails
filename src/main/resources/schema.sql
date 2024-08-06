@@ -6,7 +6,5 @@ CREATE TABLE IF NOT EXISTS the_nails.email (
 id SERIAL PRIMARY KEY,
 chat_id BIGINT NOT NULL,
 email VARCHAR(255) NOT NULL,
-created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+insert_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE INDEX idx_chat_id ON the_nails.email (chat_id);
