@@ -31,6 +31,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final AboutUsInfoProvider aboutUsInfoProvider;
     private final ContactsInfoProvider contactsInfoProvider;
     private final BookingService bookingService;
+    private final BookingInfoProvider bookingInfoProvider;
     private final Map<Long, Boolean> awaitingEmailInput = new HashMap<>();
 
     @Override
@@ -173,13 +174,20 @@ public class TelegramBot extends TelegramLongPollingBot {
         sendMessageWithKeyboard(chatId, "Что бы вы хотели сделать дальше?", inlineKeyboardMarkupBuilder.createMainMenuKeyboard());
     }
 
-    public void sendInvalidEmailMessage(long chatId, String message) {
+    public void sendInvalidEmailMessage(long chatId) {
+        String message = bookingInfoProvider.getInvalidEmailMessage();
         logger.info("Sending invalid email message to chatId: {}", chatId);
         sendMarkdownMessage(chatId, message);
     }
 
+    public void sendEmailSavedMessage(long chatId) {
+        String message = bookingInfoProvider.getEmailSavedMessage();
+        logger.info("Sending email saved message to chatId: {}", chatId);
+        sendMarkdownMessage(chatId, message);
+    }
+
     public void sendEmailConfirmedMessage(long chatId) {
-        String message = "Ваш e-mail успешно подтвержден! Мы готовы принять вашу запись.";
+        String message = bookingInfoProvider.getEmailConfirmedMessage();
         logger.info("Sending email confirmed message to chatId: {}", chatId);
         sendMarkdownMessage(chatId, message);
     }

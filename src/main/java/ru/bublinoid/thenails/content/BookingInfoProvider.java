@@ -25,4 +25,8 @@ public class BookingInfoProvider {
     public String getInvalidEmailMessage() {
         return "Введен неверный адрес электронной почты. Пожалуйста, попробуйте снова.";
     }
+
+    public String getEmailSavedMessage() {
+        return "Вам отправлен код подтверждения на вашу почту. Пожалуйста, введите этот код здесь.";
+    }
 }
