@@ -21,4 +21,8 @@ public class BookingInfoProvider {
     public String getInvalidCodeMessage() {
         return "Неверный код подтверждения. Пожалуйста, попробуйте снова.";
     }
+
+    public String getInvalidEmailMessage() {
+        return "Введен неверный адрес электронной почты. Пожалуйста, попробуйте снова.";
+    }
 }

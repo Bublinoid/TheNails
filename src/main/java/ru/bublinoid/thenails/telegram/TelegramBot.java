@@ -17,6 +17,9 @@ import ru.bublinoid.thenails.content.ContactsInfoProvider;
 import ru.bublinoid.thenails.keyboard.InlineKeyboardMarkupBuilder;
 import ru.bublinoid.thenails.service.BookingService;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Component
 @AllArgsConstructor
 public class TelegramBot extends TelegramLongPollingBot {
@@ -28,6 +31,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final AboutUsInfoProvider aboutUsInfoProvider;
     private final ContactsInfoProvider contactsInfoProvider;
     private final BookingService bookingService;
+    private final Map<Long, Boolean> awaitingEmailInput = new HashMap<>();
 
     @Override
     public String getBotUsername() {
@@ -42,47 +46,65 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
-            String messageText = update.getMessage().getText();
-            long chatId = update.getMessage().getChatId();
-            String firstName = update.getMessage().getChat().getFirstName();
-
-            logger.info("Received message from chatId: {}, name: {}, text: {}", chatId, firstName, messageText);
-
-            switch (messageText) {
-                case "/start":
-                    startCommandReceived(chatId, firstName);
-                    break;
-                // Добавьте другие команды здесь, если необходимо
-                default:
-                    // Обработка ввода e-mail
-                    bookingService.handleEmailInput(chatId, messageText);
-                    sendMainMenu(chatId, firstName);
-                    break;
-            }
+            handleTextMessage(update);
         } else if (update.hasCallbackQuery()) {
-            String callbackData = update.getCallbackQuery().getData();
-            long chatId = update.getCallbackQuery().getMessage().getChatId();
-            String firstName = update.getCallbackQuery().getMessage().getChat().getFirstName();
+            handleCallbackQuery(update);
+        }
+    }
 
-            logger.info("Received callback query from chatId: {}, name: {}, data: {}", chatId, firstName, callbackData);
+    private void handleTextMessage(Update update) {
+        String messageText = update.getMessage().getText();
+        long chatId = update.getMessage().getChatId();
+        String firstName = update.getMessage().getChat().getFirstName();
 
-            switch (callbackData) {
-                case "services":
-                    sendServicesInfo(chatId, firstName);
-                    break;
-                case "book":
-                    sendBookingInfo(chatId, firstName);
-                    break;
-                case "about_us":
-                    sendAboutUsInfo(chatId, firstName);
-                    break;
-                case "contacts":
-                    sendContactsInfo(chatId, firstName);
-                    break;
-                default:
-                    logger.warn("Unknown callback data: {}", callbackData);
-                    break;
-            }
+        logger.info("Received message from chatId: {}, name: {}, text: {}", chatId, firstName, messageText);
+
+        if (awaitingEmailInput.getOrDefault(chatId, false)) {
+            processEmailInput(chatId, messageText);
+        } else {
+            processCommand(chatId, firstName, messageText);
+        }
+    }
+
+    private void handleCallbackQuery(Update update) {
+        String callbackData = update.getCallbackQuery().getData();
+        long chatId = update.getCallbackQuery().getMessage().getChatId();
+        String firstName = update.getCallbackQuery().getMessage().getChat().getFirstName();
+
+        logger.info("Received callback query from chatId: {}, name: {}, data: {}", chatId, firstName, callbackData);
+
+        switch (callbackData) {
+            case "services":
+                sendServicesInfo(chatId, firstName);
+                break;
+            case "book":
+                requestEmailInput(chatId, firstName);
+                break;
+            case "about_us":
+                sendAboutUsInfo(chatId, firstName);
+                break;
+            case "contacts":
+                sendContactsInfo(chatId, firstName);
+                break;
+            default:
+                logger.warn("Unknown callback data: {}", callbackData);
+                break;
+        }
+    }
+
+    private void processEmailInput(long chatId, String email) {
+        awaitingEmailInput.put(chatId, false);
+        bookingService.handleEmailInput(chatId, email);
+    }
+
+    private void processCommand(long chatId, String firstName, String command) {
+        switch (command) {
+            case "/start":
+                startCommandReceived(chatId, firstName);
+                break;
+            default:
+                sendMainMenu(chatId, firstName);
+                break;
         }
     }
 
@@ -126,12 +148,11 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private void sendBookingInfo(Long chatId, String name) {
+    private void requestEmailInput(Long chatId, String name) {
         String bookingInfo = bookingService.getRequestEmailMessage();
-        logger.info("Sending booking info to chatId: {}, name: {}", chatId, name);
+        logger.info("Requesting email input from chatId: {}, name: {}", chatId, name);
         sendMarkdownMessage(chatId, bookingInfo);
-
-        bookingService.handleEmailInput(chatId, ""); // Это заглушка, так как email будет обрабатываться в onUpdateReceived
+        awaitingEmailInput.put(chatId, true); // Устанавливаем флаг ожидания ввода e-mail
     }
 
     private void sendMessageWithKeyboard(Long chatId, String textToSend, InlineKeyboardMarkup keyboardMarkup) {
@@ -150,5 +171,16 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void sendMainMenu(Long chatId, String name) {
         logger.info("Sending main menu to chatId: {}, name: {}", chatId, name);
         sendMessageWithKeyboard(chatId, "Что бы вы хотели сделать дальше?", inlineKeyboardMarkupBuilder.createMainMenuKeyboard());
+    }
+
+    public void sendInvalidEmailMessage(long chatId, String message) {
+        logger.info("Sending invalid email message to chatId: {}", chatId);
+        sendMarkdownMessage(chatId, message);
+    }
+
+    public void sendEmailConfirmedMessage(long chatId) {
+        String message = "Ваш e-mail успешно подтвержден! Мы готовы принять вашу запись.";
+        logger.info("Sending email confirmed message to chatId: {}", chatId);
+        sendMarkdownMessage(chatId, message);
     }
 }
