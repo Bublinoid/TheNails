@@ -22,7 +22,6 @@
         <developer/>
     </developers>
     <modules>
-        <module>email-sender</module>
     </modules>
     <scm>
         <connection/>
