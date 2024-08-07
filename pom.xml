@@ -11,6 +11,7 @@
     <groupId>ru.bublinoid</groupId>
     <artifactId>the-nails</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
     <name>the-nails</name>
     <description>the-nails</description>
     <url/>
@@ -20,6 +21,9 @@
     <developers>
         <developer/>
     </developers>
+    <modules>
+        <module>email-sender</module>
+    </modules>
     <scm>
         <connection/>
         <developerConnection/>
@@ -101,6 +105,7 @@
             <artifactId>jaxb-api</artifactId>
             <version>2.3.1</version>
         </dependency>
+
     </dependencies>
 
     <build>
